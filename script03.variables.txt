@@ -1,0 +1,27 @@
+set vFile= 'XLSX_File.xlsx';
+set vSheet = 'MySheet';
+set vMonth= 'Month';
+set vYear = 'Year';
+set vYear2 = 'TotalYear';
+set vTest= 'Units > 20 AND InvoiceID > 3';
+set vTable ='Temp_Table1';
+set vSum1 ='Amount';
+set vSum2 ='sum(Units)';
+$(vTable):
+ LOAD InvoiceID as ID2,
+ CustomerID as Number2,
+ $(vMonth),
+ $(vYear),
+ $(vSum1) as Montant,
+ Units
+ FROM $(vFile)
+ (ooxml, embedded labels, table is $(vSheet))
+ WHERE $(vTest) ;
+Sum_Table2:
+LOAD Number2 as CustomerID,
+ $(vYear) as $(vYear2),
+ sum($(vSum1)) as MontantByYear,
+ $(vSum2) as UnitsByYear
+RESIDENT $(vTable)
+GROUP BY Number2, $(vYear)
+ORDER BY $(vYear), Number2; 

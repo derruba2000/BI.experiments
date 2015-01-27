@@ -1,0 +1,30 @@
+LOAD F1, F2, Peek(F1) as PeekVal, Previous(F2) as PrevVal Where F2 >= 200;
+LOAD * INLINE [
+    F1, F2
+    A, 100
+    B, 200
+    C, 150
+    D, 320
+];
+
+
+TestTable:
+Load * Inline [
+Customer_ID, Customer, Address, City, Zip, Country
+1101, Catering Service, Fisherman Drive
+1102, Portsmouth, BH 354 RW, Great Britain
+];
+ 
+Temp2:
+Load DISTINCT
+Field1,
+Date(Date#(Field2, 'DD-MM-YYYY')) as Field2,
+Field3,
+Field4
+Inline [
+Field1,Field2,Field3,Field4
+A, 01-01-2013, 200, 100
+B, 01-01-2013, 100,300
+C, 01-01-2013, 300,400
+A, 02-02-2013, 0,500
+] where Field1 0 'A';

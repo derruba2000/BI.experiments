@@ -1,0 +1,23 @@
+Sales:
+LOAD Client,
+ Date,
+ subfield(Product, ';') as Product
+FROM
+SubField.xlsx
+(ooxml, embedded labels, table is Feuil1); 
+
+
+
+Intervals:
+LOAD IntervalID,
+ DateBegin,
+ DateEnd
+FROM
+Intervals.xlsx
+(ooxml, embedded labels, table is Feuil2);
+
+
+Bridge:
+IntervalMatch (DateEvent)
+LOAD DISTINCT DateBegin, DateEnd
+Resident Intervals;

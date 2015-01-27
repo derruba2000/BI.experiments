@@ -1,0 +1,7 @@
+MAP_Table:
+MAPPING LOAD
+ CustomerID,
+ %Off
+FROM
+Customer.xlsx
+(ooxml, embedded labels, table is Feuil4); 
