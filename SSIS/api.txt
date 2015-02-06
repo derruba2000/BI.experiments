@@ -1,0 +1,145 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using Newtonsoft.Json.Linq;
+using System.Net;
+using System.IO;
+
+
+
+namespace P2EAPI_Wrapper
+{
+    class APIwrapper
+    {
+        private Boolean authenticated = false;
+        private String token = "None";
+        private String user = "None";
+        private String APIhost = "http://localhost:3000/";
+
+        public Boolean isAuthenticated() { return this.authenticated; }
+        void setAuthenticated() { this.authenticated = true; }
+        void setToken(dynamic tk) { this.token = tk.token; }
+        public String getToken() { return this.token; }
+        void setUser(dynamic usr) { this.user = usr.user; }
+        public String getUser() { return this.user; }
+
+
+        public APIwrapper(String hostname){
+            this.APIhost = hostname;
+        }
+
+        //Accounts Methods
+        public String Login(String user, String password)
+        {
+            WebRequest request = WebRequest.Create(new Uri(this.APIhost + "login"));
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            StringBuilder paramz = new StringBuilder();
+            paramz.Append("email=" + HttpUtility.UrlEncode(user) + "&password=" + HttpUtility.UrlEncode(password));
+
+            // Encode the parameters as form data:
+            byte[] formData = UTF8Encoding.UTF8.GetBytes(paramz.ToString());
+            request.ContentLength = formData.Length;
+            try
+            {
+                // Send the request:
+                using (Stream post = request.GetRequestStream())
+                {
+                    post.Write(formData, 0, formData.Length);
+                }
+
+                // Pick up the response:
+                string result = null;
+                using (HttpWebResponse resp = request.GetResponse() as HttpWebResponse)
+                {
+                    StreamReader reader = new StreamReader(resp.GetResponseStream());
+                    result = reader.ReadToEnd();
+                }
+
+                dynamic stuff = JObject.Parse(result);
+                this.setToken(stuff);
+                this.setAuthenticated();
+                this.setUser(stuff);
+                return "Access Granted you are authenticaded";
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return "Access Denied, Please review your credentials ";
+        }
+        
+        
+        public String test123(String date)
+        {
+            String txtResponse = "No Data available";
+            WebRequest request;
+   
+            request = WebRequest.Create(new Uri(this.APIhost + "api/readpayments/" + date));
+            
+            request.Method = "GET";
+            request.Headers.Add("Authorization", "Bearer " + this.getToken());
+
+            try
+            {
+                var response = (HttpWebResponse)request.GetResponse();
+                Stream objStream = response.GetResponseStream();
+                StreamReader objReader = new StreamReader(objStream);
+
+                return objReader.ReadLine();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error : " + e.Message);
+            }
+
+            return txtResponse;
+        }
+    
+    }
+    
+    
+     public String NewcrmOrderItem(
+            WebRequest request = WebRequest.Create(new Uri(this.APIhost + "api/orderitem"));
+            request.Method = "POST";
+            request.Headers.Add("Authorization", "Bearer " + this.getToken());
+            request.ContentType = "application/x-www-form-urlencoded";
+            StringBuilder paramz = new StringBuilder();
+            paramz.Append("par1=" + HttpUtility.UrlEncode(par1));
+            if (null != par2) paramz.Append("&par2=" + HttpUtility.UrlEncode(par2));
+        if (null != par3) paramz.Append("&par3=" + HttpUtility.UrlEncode(par3));
+        
+
+            // Encode the parameters as form data:
+            byte[] formData = UTF8Encoding.UTF8.GetBytes(paramz.ToString());
+            request.ContentLength = formData.Length;
+            try
+            {
+                // Send the request:
+                using (Stream post = request.GetRequestStream())
+                {
+                    post.Write(formData, 0, formData.Length);
+                }
+
+                // Pick up the response:
+                string result = null;
+                using (HttpWebResponse resp = request.GetResponse() as HttpWebResponse)
+                {
+                    StreamReader reader = new StreamReader(resp.GetResponseStream());
+                    result = reader.ReadToEnd();
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+ 
+        }
+
+}

@@ -1,3 +1,3 @@
 # qlikview.experiments
 
-Qlikview Testing Scripts
+Qlikview and SSIS c# Testing Scripts

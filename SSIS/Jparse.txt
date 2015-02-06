@@ -1,0 +1,80 @@
+ SqlConnection myADONETConnection = new SqlConnection();
+            try
+            {
+                myADONETConnection = new SqlConnection(this.dbstring);
+                myADONETConnection.Open();
+
+                String SQL = @"SELECT  FROM [Sal]";
+
+                SqlCommand cmd = new SqlCommand(SQL, myADONETConnection);
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    dynamic item = JObject.Parse(dr["XXX"].ToString());
+                    if (0 == Convert.ToInt16(XXX.totalSize)) //No match found ready to insert it
+                    {
+                        try
+                        {
+                           // do something
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Error Order Item :" + e.Message);
+                           
+                        }
+                    }
+                }
+            }
+            catch (Exception e) { 
+            }
+            myADONETConnection.Close();
+
+
+
+
+            //Connecting to database
+            SqlConnection myADONETConnection = new SqlConnection();
+            myADONETConnection = new SqlConnection(this.dbstring);
+            myADONETConnection.Open();
+
+
+            DataTable dt = new DataTable();
+            DataRow dr;
+            //Creating table columns
+            dt.Columns.Add("XXX");
+            dt.Columns.Add("YYY");
+
+
+
+            dynamic listTMP = JObject.Parse(TMP);
+
+            try
+            {
+                if (Convert.ToInt16(listTMP.totalSize) > 0)
+                {
+
+                    for (int k = 0; k < Convert.ToInt16(listTMP.totalSize); k++)
+                    {
+                        dr = dt.NewRow();
+                        if (listTMP.records[k].XXX != null) dr["XXX"] = listTMP.records[k].XXX.ToString();
+                        if (listTMP.records[k].YYY != null) dr["YYY"] = listTMP.records[k].YYY.ToString();
+                     
+                        dt.Rows.Add(dr);
+                    }
+                }
+                else
+                {
+                   Console.Writeline("bla bla bla ");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+     
+            }
+
+            // Writes table to database
+            SqlBulkCopy sqlbulk = new SqlBulkCopy(myADONETConnection);
+            sqlbulk.DestinationTableName = "[XRP].table";
+            sqlbulk.WriteToServer(dt);
+            myADONETConnection.Close();
