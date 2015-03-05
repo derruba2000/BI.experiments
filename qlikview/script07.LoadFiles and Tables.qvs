@@ -1,0 +1,51 @@
+///$tab Main
+SET ThousandSep=',';
+SET DecimalSep='.';
+SET MoneyThousandSep=',';
+SET MoneyDecimalSep='.';
+SET MoneyFormat='£#,##0.00;-£#,##0.00';
+SET TimeFormat='hh:mm:ss';
+SET DateFormat='DD/MM/YYYY';
+SET TimestampFormat='DD/MM/YYYY hh:mm:ss[.fff]';
+SET MonthNames='Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec';
+SET DayNames='Mon;Tue;Wed;Thu;Fri;Sat;Sun';
+
+SET vFolder='C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\WE_00Db0000000agKBEAY_1';
+
+SET vTargetFolder='C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\Data Analysis\QVD DATA';
+///$tab LoadFiles
+Sub loadfiles(Files)
+          For Each file in FileList('$(Files)' & '\*.csv');
+          	  tmpFileName = SubStringCount('$(file)','\');
+          	  LET tmpFileName=$(tmpFileName) + 1;
+          	  LET tmpFileName= SubField('$(file)','\',$(tmpFileName));
+          	  
+              FILETABLE:
+                    LOAD '$(file)' AS FilePath,
+                     if(Len(SubField('$(file)','.',-1)) < 8,SubField('$(file)','.',-1),'No Extension') AS FileExtension,
+                     FileSize('$(file)') AS FileSize,
+                     SubField('$(file)','\',SubStringCount('$(file)','\')+1) As FileName,
+                     FileTime('$(file)') AS FileTime AutoGenerate 1;
+              
+              TMPTABLE:
+	               LOAD *
+	               FROM $(file) (txt, codepage is 1252, embedded labels, delimiter is ',');
+	               
+	          STORE TMPTABLE into $(vTargetFolder)\$(tmpFileName).qvd (qvd);
+	          DROP TABLE TMPTABLE;
+ 
+          NEXT file;
+          For Each subdir in DirList('$(Files)' & '\*');
+           CALL subFunction('$(subdir)')
+          NEXT subdir;
+End Sub
+ 
+ 
+SUB subFunction(Subdir)
+          For Each sub in DirList('$(Subdir)')
+           CALL loadfiles('$(sub)')
+          NEXT sub;
+End Sub
+Call loadfiles('$(vFolder)')
+
+///$tab Main 3
