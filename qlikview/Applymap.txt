@@ -1,0 +1,166 @@
+16:01 05/03/2015///$tab Main
+SET ThousandSep=',';
+SET DecimalSep='.';
+SET MoneyThousandSep=',';
+SET MoneyDecimalSep='.';
+SET MoneyFormat='£#,##0.00;-£#,##0.00';
+SET TimeFormat='hh:mm:ss';
+SET DateFormat='DD/MM/YYYY';
+SET TimestampFormat='DD/MM/YYYY hh:mm:ss[.fff]';
+SET MonthNames='Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec';
+SET DayNames='Mon;Tue;Wed;Thu;Fri;Sat;Sun';
+
+set vSaveQVD = [C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\Data Analysis\QVD DATA\];
+set vInputData = totalSchools;
+///$tab New Data
+[New Data]:
+LOAD [Account Name] as Name, 
+     [Establishment Name], 
+     [Billing State], 
+     [Billing Zip/Postal Code] as postcode, 
+     [Establishment Type], 
+     [Funding Type], 
+     [LEA Authority]
+FROM
+[C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\$(vInputData).csv]
+(txt, codepage is 1252, embedded labels, delimiter is ',');
+
+///$tab MappingData
+MappingSFAccounts:
+MAPPING LOAD 
+  Name,
+  IdSF
+from $(vSaveQVD)accounts.qvd (qvd);
+
+
+Mappingpostcodes:
+MAPPING LOAD
+  postcode,
+  county
+from $(vSaveQVD)postcodes.qvd (qvd);
+
+
+
+
+
+
+
+
+
+
+
+
+///$tab Outputs
+OutputData:
+LOAD
+     Name, 
+     [Establishment Name] as Establishment_Name__c, 
+     ApplyMap('Mappingpostcodes', postcode, null()) as BillingState, 
+     [postcode] as BillingPostalCode, 
+     [Establishment Type] as Establishment_Type__c, 
+     [Funding Type] as Funding_Type__c, 
+     [LEA Authority] as LEA_Authority__c,
+     RowNo() AS RowNum,
+     ApplyMap('MappingSFAccounts', Name, null()) as Id
+Resident [New Data]; 
+
+
+
+///$tab Finishing
+STORE OutputData into [C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\OutputData.csv] (txt);
+
+DROP TABLE [New Data];
+EXIT SCRIPT;
+
+///$tab LoadBigTables
+SFAccounts:
+LOAD Id as IdSF, 
+     IsDeleted, 
+     MasterRecordId, 
+     Name, 
+     Type, 
+     ParentId, 
+     BillingStreet, 
+     BillingCity, 
+     BillingState, 
+     BillingPostalCode, 
+     BillingCountry, 
+     BillingLatitude, 
+     BillingLongitude, 
+     ShippingStreet, 
+     ShippingCity, 
+     ShippingState, 
+     ShippingPostalCode, 
+     ShippingCountry, 
+     ShippingLatitude, 
+     ShippingLongitude, 
+     Phone, 
+     Fax, 
+     AccountNumber, 
+     Website, 
+     Sic, 
+     Industry, 
+     AnnualRevenue, 
+     NumberOfEmployees, 
+     Ownership, 
+     TickerSymbol, 
+     Description, 
+     Rating, 
+     Site, 
+     OwnerId, 
+     CreatedDate, 
+     CreatedById, 
+     LastModifiedDate, 
+     LastModifiedById, 
+     SystemModstamp, 
+     LastActivityDate, 
+     Jigsaw, 
+     JigsawCompanyId, 
+     AccountSource, 
+     SicDesc, 
+     Establishment_Type__c, 
+     Funding_Type__c, 
+     Point2Protect__c, 
+     Magento_Group__c, 
+     Magento_Account_Confirmed__c, 
+     Customer_Type__c, 
+     Business_Store__c, 
+     Magento_Account_Created__c, 
+     Newsletter_Subscriber__c, 
+     LEA_Authority__c, 
+     Establishment_Name__c, 
+     URN__c
+FROM
+[C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\WE_00Db0000000agKBEAY_1\Account.csv]
+(txt, codepage is 1252, embedded labels, delimiter is ',', msq);
+STORE SFAccounts into $(vSaveQVD)accounts.qvd (qvd);
+DROP TABLE SFAccounts;
+
+postcodes:
+LOAD postcode, 
+     latitude, 
+     longitude, 
+     county, 
+     country
+FROM
+[C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\postcodesMap.csv]
+(txt, utf8, embedded labels, delimiter is ',', msq, no eof);
+
+
+STORE postcodes into $(vSaveQVD)postcodes.qvd (qvd);
+DROP TABLE postcodes;
+///$tab Load postcodes
+postcodes:
+LOAD
+  postcode,
+  county
+from $(vSaveQVD)postcodes.qvd (qvd);
+
+EXIT SCRIPT;
+///$tab TempDebug
+SFAccounts:
+LOAD *
+from $(vSaveQVD)accounts.qvd (qvd);
+
+
+EXIT SCRIPT;
