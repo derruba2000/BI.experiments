@@ -1,0 +1,25 @@
+Qlikview commands
+
+
+You may or may not need the quotes around the pathname for QV.exe or for your report file. Windows usually wants to have the quotes for any pathname containing a blank or special character.
+
+If you add a /r switch (notice the front-leaning slash) then the command will open the report, run the reload function (executing the loadscript), and then save and close the report:
+"c:\Program Files\QlikView\QV.exe" /r c:\reports\Inventory.qvw
+
+A /rp will do something similar except it runs the partial reload function.
+
+The /l switch (that's a lower case ell) will open the report, run the reload function and leave the report open. This one can be useful as a desktop shortcut:
+"c:\Program Files\QlikView\QV.exe" /r c:\reports\Inventory.qvw
+
+A /p switch will open the report, run a partial reload and then leave the report open.
+
+The /v switch can be used to pass a document variable value into the report. It can be used either with or without the switches described above. The document variable might be used in macro module code or in the loadscript. In our example if we want to reload the QV report and pass in the document variable batch_flag with a value of 1 then we'd use a command like this:
+"c:\Program Files\QlikView\QV.exe" /r /vbatch_flag=1 c:\reports\Inventory.qvw
+
+[The previous line and all of the previous command line examples are intended to be a single line even if your browser is breaking them into two lines]
+
+We often use a command like that for reports that work differently when they are executed in batch versus being opened by a user.
+
+My personal favorite way to use the command line syntax is from a VBScript file (.vbs script) on the Windows PC. VBScript allows me more flexibility in automatically figuring out which report file to run and what kind of document variable values should be passed in. From the VBScript file the syntax might look something like this: (using the same example)
+Set objShell = CreateObject("WScript.Shell")
+objShell.Run """c:\Program Files\QlikView\QV.exe"" /r /vbatch_flag=1 c:\reports\Inventory.qvw"
