@@ -1,0 +1,109 @@
+Contacts:
+LOAD Id, 
+     AccountId, 
+     Salutation, 
+     FirstName, 
+     LastName,
+     FirstName & LastName & Email as ContactKey, 
+     Phone as ContactPhone, 
+     MobilePhone, 
+     Email, 
+     Title, 
+     Description as ContactDescription, 
+     CreatedDate as Contact_CreatedDate, 
+     Magento_Account__c, 
+     Newsletter_Subscriber__c, 
+     MC4SF__MC_Subscriber__c, 
+     Date_Registered__c, 
+     E_Safety_Contact__c,
+     AutoNumber(Email&AccountId) as PART1
+FROM
+[C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\Data Analysis\QVD DATA\Contact.csv.qvd] (qvd);
+
+
+ContactsPART2:
+NOconcatenate
+LOAD  Id, 
+     AccountId, 
+     Salutation, 
+     FirstName, 
+     LastName,
+     ContactKey, 
+     ContactPhone, 
+     MobilePhone, 
+     Email, 
+     Title, 
+     ContactDescription, 
+     Contact_CreatedDate, 
+     Magento_Account__c, 
+     Newsletter_Subscriber__c, 
+     MC4SF__MC_Subscriber__c, 
+     Date_Registered__c,
+	 E_Safety_Contact__c, 
+     PART1,
+     if (PART1=previous(PART1), 0, RowNo()) as PART2
+RESIDENT Contacts;
+
+Qualify *;
+ContactsFinal:
+LOAD Id,
+	 AccountId, 
+     Salutation, 
+     FirstName, 
+     LastName,
+     ContactKey, 
+     ContactPhone, 
+     MobilePhone, 
+     Email, 
+     Title, 
+     ContactDescription, 
+     Contact_CreatedDate, 
+     Magento_Account__c, 
+     Newsletter_Subscriber__c, 
+     MC4SF__MC_Subscriber__c, 
+     Date_Registered__c,
+	 E_Safety_Contact__c, 
+	 PART1,
+     if (PART2=0, RowNo()-FieldIndex( 'PART1', PART1 )+1, 1) as PART3	 
+RESIDENT ContactsPART2;
+
+
+DROP TABLE Contacts;
+DROP TABLE ContactsPART2;
+
+LOAD Id as AccountId, 
+     MasterRecordId, 
+     Name as Account_Name, 
+     Type, 
+     BillingStreet, 
+     BillingCity, 
+     BillingState, 
+     BillingPostalCode, 
+     BillingCountry, 
+     Phone as AccountPhone, 
+     AccountNumber, 
+     Description as AccountDescription, 
+     Rating, 
+     Site, 
+     CreatedDate as Account_CreatedDate, 
+     LastModifiedDate, 
+     LastActivityDate, 
+     Jigsaw, 
+     JigsawCompanyId, 
+     SicDesc, 
+     Establishment_Type__c, 
+     Funding_Type__c, 
+     Point2Protect__c, 
+     Magento_Group__c, 
+     Magento_Account_Confirmed__c, 
+     Customer_Type__c, 
+     Business_Store__c, 
+     Magento_Account_Created__c, 
+     Newsletter_Subscriber__c, 
+     LEA_Authority__c, 
+     Establishment_Name__c, 
+     URN__c
+FROM
+[C:\SharedFolders\MeoCloud\Point2Educate\Salesforce\Data Analysis\QVD DATA\Account.csv.qvd]
+(qvd);
+
