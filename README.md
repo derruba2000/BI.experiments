@@ -1,3 +1,5 @@
-# qlikview.experiments
+# BI Experiments
 
-Qlikview and SSIS c# Testing Scripts
+## Qlikview and MSSQL BI Stack scripts and Macros
+
+
