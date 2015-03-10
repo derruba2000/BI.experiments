@@ -1,0 +1,385 @@
+Hope the below macro scripts helps beginners
+Source : QlikView Macros – Useful collection | Lucian Cotea
+ 
+1) Run external program:
+
+FUNCTION RunExe(cmd) 
+ CreateObject("WScript.Shell").Exec(cmd) 
+END FUNCTION  
+SUB CallExample RunExe("c:\Program Files\Internet Explorer\iexplore.exe") END SUB
+
+2) Export object to Excel
+
+FUNCTION ExcelExport(objID) 
+  set obj = ActiveDocument.GetSheetObject( objID ) 
+  w = obj.GetColumnCount if obj.GetRowCount>1001 then h=1000 else h=obj.GetRowCount end if 
+  Set objExcel = CreateObject("Excel.Application") objExcel.Workbooks.Add objExcel.Worksheets(1).select() 
+  objExcel.Visible = True set CellMatrix = obj.GetCells2(0,0,w,h) column = 1 
+  for cc=0 to w-1 
+    objExcel.Cells(1,column).Value = CellMatrix(0)(cc).Text 
+    objExcel.Cells(1,column).EntireRow.Font.Bold = True 
+    column = column +1 
+  next c = 1 r =2 
+  
+  for RowIter=1 to h-1 
+    for ColIter=0 to w-1 
+      objExcel.Cells(r,c).Value = CellMatrix(RowIter)(ColIter).Text 
+      c = c +1 
+    next 
+    r = r+1 c = 1 
+  next 
+END FUNCTION  
+SUB CallExample ExcelExport( "CH01" ) END SUB
+
+3) Export object to JPG
+
+FUNCTION ExportObjectToJpg( ObjID, fName) 
+ ActiveDocument.GetSheetObject(ObjID).ExportBitmapToFile fName 
+END FUNCTION  
+SUB CallExample ExportObjectToJpg "CH01", "C:\CH01Image.jpg"  END SUB
+
+4) Save and exit QlikView
+
+SUB SaveAndQuit 
+   ActiveDocument.Save    
+   ActiveDocument.GetApplication.Quit
+END SUB
+
+5) Clone Dimension Group
+
+SUB DuplicateGroups
+   SourceGroup = InputBox("Enter Source Group Name") 
+   CopiesNo = InputBox("How many copies?") 
+   SourceGroupProperties = ActiveDocument.GetGroup(SourceGroup).GetProperties
+   FOR i = 1 TO CopiesNo 
+      SET DestinationGroup = ActiveDocument.CreateGroup(SourceGroupProperties.Name & "_" & i) 
+      SET DestinationGroupProperties = DestinationGroup.GetProperties 
+      IF SourceGroupProperties.IsCyclic THEN 
+           DestinationGroupProperties.IsCyclic = true 
+           DestinationGroup.SetProperties DestinationGroupProperties 
+      ELSE SourceGroupProperties.IsCyclic = true 
+           DestinationGroupProperties.SetProperties SourceGroupProperties 
+      END IF 
+      SET Fields = SourceGroupProperties.FieldDefs 
+      FOR c = 0 TO Fields.Count-1 
+        SET fld = Fields(c) 
+        DestinationGroup.AddField fld.name 
+      NEXT Application.waitforidle 
+    NEXT
+END SUB
+
+
+6) Open document with selection of current month
+
+SUB DocumentOpen 
+   ActiveDocument.Sheets("Intro").Activate 
+   ActiveDocument.ClearAll (true) 
+   ActiveDocument.Fields("YearMonth").Select 
+   ActiveDocument.Evaluate("Date(MonthStart(Today(), 0),'MMM-YYYY')") 
+END SUB
+
+7) Read and Write variables
+FUNCTION getVariable(varName) 
+    set v = ActiveDocument.Variables(varName)
+    getVariable = v.GetContent.String 
+    getVariable = v.GetContent.String 
+END FUNCTION  
+SUB setVariable(varName, varValue) 
+    set v = ActiveDocument.Variables(varName) 
+    v.SetContent varValue, true 
+END SUB
+
+8) Open QlikView application, reload, press a button and close (put the code in a .vbs file)
+
+Set MyApp = CreateObject("QlikTech.QlikView") Set MyDoc = MyApp.OpenDoc ("C:\QlikViewApps\Demo.qvw","","") Set ActiveDocument = MyDoc ActiveDocument.Reload Set Button1 = ActiveDocument.GetSheetObject("BU01") Button1.Press MyDoc.GetApplication.Quit Set MyDoc = Nothing Set MyApp = Nothing
+9) Delete file
+
+FUNCTION DeleteFile(rFile) set oFile = createObject("Scripting.FileSystemObject")  currentStatus = oFile.FileExists(rFile)  if currentStatus = true then oFile.DeleteFile(rFile) end if set oFile = Nothing END FUNCTION  SUB CallExample DeleteFile ("C:\MyFile.PDF") END SUB
+10) Get reports information
+
+function countReports set ri = ActiveDocument.GetDocReportInfo countReports = ri.Count end function  function getReportInfo 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ set ri = ActiveDocument.GetDocReportInfo set r = ri.Item(i) getReportInfo = r.Id & "," & r.Name & "," & r.PageCount & CHR(10) end function
+11) Send mail using Google Mail
+
+SUB SendMail Dim objEmail  Const cdoSendUsingPort = 2      ' Send the message using SMTP Const cdoBasicAuth = 1          ' Clear-text authentication Const cdoTimeout = 60           ' Timeout for SMTP in seconds  mailServer = "smtp.gmail.com" SMTPport = 465 mailusername = "MyAccount@gmail.com" mailpassword = "MyPassword"  mailto = "destination@company.com" mailSubject = "Subject line" mailBody = "This is the email body"  Set objEmail = CreateObject("CDO.Message") Set objConf = objEmail.Configuration Set objFlds = objConf.Fields  With objFlds .Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = cdoSendUsingPort .Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = mailServer .Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = SMTPport .Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True .Item("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = cdoTimeout .Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = cdoBasicAuth .Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = mailusername .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = mailpassword .Update End With  objEmail.To = mailto objEmail.From = mailusername objEmail.Subject = mailSubject objEmail.TextBody = mailBody objEmail.AddAttachment "C:\report.pdf" objEmail.Send  Set objFlds = Nothing Set objConf = Nothing Set objEmail = Nothing END SUB
+12) Changing Font setting of an Object
+ 
+SUB Font()
+set obj = ActiveDocument.GetSheetObject("BU01")
+set fnt = obj.GetFrameDef.Font
+fnt.PointSize1000 = fnt.PointSize1000 + 1000
+fnt.FontName = "Calibri"
+fnt.Bold = true
+fnt.Italic = true
+fnt.Underline = true
+obj.SetFont fnt
+END SUB
+13. To Show and Hide Tab row.
+ 
+Sub ShowTab  
+rem Hides tabrow in document properties  
+set docprop = ActiveDocument.GetProperties  
+docprop.ShowTabRow=true  
+ActiveDocument.SetProperties docprop  
+End Sub  
+  
+Sub HideTab  
+rem Hides tabrow in document properties  
+set docprop = ActiveDocument.GetProperties  
+docprop.ShowTabRow=false  
+ActiveDocument.SetProperties docprop  
+End Sub  
+14. Always One Selected Enable / Disable setting through Macro
+Sub AlwaysOneSelected  
+  set obj = ActiveDocument.GetSheetObject("LB02")  
+  set boxfield=obj.GetField  
+  set fprop = boxfield.GetProperties  
+  fprop.OneAndOnlyOne = True  
+  boxfield.SetProperties fprop  
+End Sub  
+  
+Sub RemoveAlwaysOneSelected  
+    set obj = ActiveDocument.GetSheetObject("LB02")  
+    set boxfield=obj.GetField  
+    set fprop = boxfield.GetProperties  
+  fprop.OneAndOnlyOne = False  
+  boxfield.SetProperties fprop  
+  ActiveDocument.ClearAll True  
+End Sub  
+15. Reading Rows and Columns in a table object
+ 
+Sub ReadStraightTable
+Set Table = ActiveDocument.GetSheetObject( "CH01" )
+For RowIter = 0 to table.GetRowCount-1
+   For ColIter = 0 to table.GetColumnCount-1
+        set cell = table.GetCell(RowIter,ColIter)
+        Msgbox(cell.Text)
+    Next
+Next
+End Sub
+ 
+16. Get number of Rows in a Straight or Pivot tables
+function ReadRowsCount
+set v = ActiveDocument.GetVariable("variableName")
+v.SetContent  ActiveDocument.GetSheetObject( "CH01" ).GetRowCount-1, true
+end function
+ 
+17. Get and Set variable values in macros
+function setVariable(name, value)
+  set v = ActiveDocument.GetVariable("variableName")
+  v.SetContent value,true
+end function
+function getVariable(name)
+  set v = ActiveDocument.GetVariable("variableName")
+  getVariable = v.GetContent.String
+end function
+ 
+18. Export chart data to QVD file, the chart may Bar/Line/StraightTable/Pivot etc.
+sub ChartToQVD  
+    set obj = ActiveDocument.GetSheetObject("CH01")  
+    obj.ExportEx "QvdName.qvd", 4  
+end sub  
+ 
+19. Export Charts as image for each value selection in a Listbox
+FUNCTION ExportObjectToJpg( ObjID, fName)  
+  ActiveDocument.GetSheetObject(ObjID).ExportBitmapToFile fName  
+END FUNCTION  
+  
+SUB ExportChartByListboxValues  
+  DIM fname, value, filePath, timestamp  
+  filePath = ActiveDocument.Variables("vPDFFlagPath").GetContent.STRING  
+  timestamp = Year(Now()) & DatePart("m", Now()) & DatePart("d", Now()) & DatePart("h", Now()) & DatePart("n", Now()) &     DatePart("s", Now())  
+  SET Doc = ActiveDocument  
+  fieldName = "EmployeeID"  
+  SET Field = Doc.Fields(fieldName).GetPossibleValues  
+  
+  FOR index = 0 to Field.Count-1  
+  Doc.Fields(fieldName).Clear  
+  Doc.Fields(fieldName).SELECT Field.Item(index).Text  
+  fileName = Field.Item(index).Text & "_" & timestamp   & ".jpg"'Field.Item(index).Text & DateValue  
+  ExportObjectToJpg "CH420", filePath & fileName  
+  NEXT  
+  
+  Doc.Fields(fieldName).Clear  
+END SUB  
+ 
+20. Checks whether given folder exists if not creates the given folder
+Function CheckFolderExists(path)  
+  Set fileSystemObject = CreateObject("Scripting.FileSystemObject")  
+  If Not fileSystemObject.FolderExists(path) Then  
+       fileSystemObject.CreateFolder(path)  
+  End If  
+End Function  
+ 
+21. Minimize the chart object and move the chart position 20 pixels down and 15 right
+Sub MoveChart  
+  set mybox = ActiveDocument.GetSheetObject("CH09")  
+  mybox.Minimize  
+  set fr = mybox.GetFrameDef  
+  pos = fr.MinimizedRect  
+  pos.Top = pos.Top + 20  
+  pos.Left = pos.Left + 15  
+  mybox.SetFrameDef fr  
+end sub  
+ 
+22. Move Chart Object 20 pixels down and 15 right
+Sub MoveChart
+  set obj = ActiveDocument.GetSheetObject("CH09")
+    pos = obj.GetRect
+    pos.Top = pos.Top + 20
+    pos.Left = pos.Left + 15
+    obj.SetRect pos
+End Sub
+ 
+23. Export Table charts Side by Side in a single Excel sheet
+ 
+Function ExportCharts()  
+  Set xlApp = CreateObject("Excel.Application")  
+  xlApp.Visible = true  
+  Set xlDoc = xlApp.Workbooks.Add 'open new workbook  
+  nSheetsCount = 0  
+  CALL RemoveDefaultSheet(xlDoc)  
+  
+  nSheetsCount = xlDoc.Sheets.Count  
+  xlDoc.Sheets(nSheetsCount).Select  
+  Set xlSheet = xlDoc.Sheets(nSheetsCount)  
+  
+  CALL ExportRevenueWidgets(xlDoc,xlSheet)  
+End Function  
+  
+'Call Export Widgets By Sheet  
+Function ExportRevenueWidgets(xlDoc,xlSheet)  
+  CALL Export(xlDoc,xlSheet,"CH09", "A")  
+  CALL Export(xlDoc,xlSheet,"CH09", "D")  
+End Function  
+  
+'Export Widgets  
+Function Export(xlDoc, xlSheet,widgetID, columnStart)  
+    nRow = xlSheet.UsedRange.Rows.Count  
+    nRow = 1  
+  Set SheetObj = ActiveDocument.GetSheetObject(widgetID)  
+  
+  'Copy the chart object to clipboard  
+  SheetObj.CopyTableToClipboard true  
+  
+  'Paste the chart object in Excel file  
+  xlSheet.Paste xlSheet.Range(columnStart&nRow)  
+End Function  
+  
+'Remove Default Sheets from Excel Files  
+Sub RemoveDefaultSheet(xlDoc)  
+  Do  
+  nSheetsCount = xlDoc.Sheets.Count  
+  If nSheetsCount = 1 then  
+  Exit Do  
+  Else  
+  xlDoc.Sheets(nSheetsCount).Select  
+  xlDoc.ActiveSheet.Delete  
+  End If  
+  Loop  
+End Sub  
+ 
+24. Setting Scroll bar of a chart to Right side by default
+SUB StartScrollRight  
+         SET chartObject = ActiveDocument.GetSheetObject("CH01")  
+         SET chartProperties = chartObject.GetProperties  
+         chartProperties.ChartProperties.XScrollInitRight = true  
+         chartObject.SetProperties chartProperties  
+END SUB  
+ 
+25. Show hide expression in Straight / Pivot table
+Sub ShowHideExpression()  
+  SET chartObj = ActiveDocument.GetSheetObject("CH01")  
+  SET chartProp= chartObj.GetProperties  
+  
+  SET expr = chartProp.Expressions.Item(1).Item(0).Data.ExpressionData  
+  expr.Enable = False // Hides First expression  
+  
+  SET expr = chartProp.Expressions.Item(2).Item(0).Data.ExpressionData  
+  expr.Enable = True // Displays Second expression  
+End Sub  
+ 
+26. To reset InputField values
+ 
+Sub ResetInputField
+' Reset the InputField
+  set fld = ActiveDocument.Fields("InputFieldName")
+  fld.ResetInputFieldValues 0,  0   ' 0 = All values reset, 1 = Reset Possible value, 2 = Reset single value
+End Sub
+ 
+27. To set InputField values
+ 
+Sub SetInputField
+     set fld = ActiveDocument.Fields("Budget")
+     fld.SetInputFieldValue 0, "999"  ' Sets InputField value to 999
+End Sub
+ 
+28. Clear specific Fields
+SUB ClearFields
+     SET Doc = ActiveDocument
+     Doc.Fields(FieldName1).Clear
+     Doc.Fields(FieldName2).Clear
+     Doc.Fields(FieldName3).Clear
+     Doc.Fields(DateFieldNameN).Clear
+END SUB
+ 
+29. Export chart to CSV
+SUB ExportChartToCSV
+     SET  objChart = ActiveDocument.GetSheetObject("CH01")
+     objChart.Export "C:\Data.CSV", ", "
+END SUB
+
+30. Fit zoom to Window
+ 
+Sub FitZoomToWindow  
+ActiveDocument.GetApplication.WaitForIdle  
+ActiveDocument.ActiveSheet.FItZoomToWindow  
+End Sub  
+ 
+31. Macro to get fast change chart type in a variable
+10 - Pivot Table
+11 - Straight Table
+12 - Bar
+15 - Line
+ 
+Sub GetChartType()  
+  set chart = ActiveDocument.getsheetobject("CH01")  
+  set p = chart.GetProperties  
+  
+  set v = ActiveDocument.GetVariable("vFastChangeChartType")  
+   v.SetContent chart.GetObjectType,true   
+end sub  
+ 
+32. Open IE browser with URL based on a selected Dimension value - Use below macro in Document Properties Field Event Triggers
+ 
+Create a variable
+vSelectedURL : =Only([Image Location])
+ 
+Sub Browse()
+  set v = ActiveDocument.GetVariable("vSelectedURL")
+    Set ie = CreateObject("Internetexplorer.Application")
+    ie.Visible = True
+    ie.Navigate v.GetContent.String
+End Sub
+ 
+
