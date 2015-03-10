@@ -1,0 +1,432 @@
+FUNCTION RunExe(cmd)   
+   CreateObject("WScript.Shell").Exec(cmd FUNCTION
+
+SUB CallExample
+   RunExe("c:\Program Files\Internet Explorer\iexplore.exe")
+END SUB
+2) Export object to Excel
+
+FUNCTION ExcelExport(objID)
+  set obj = ActiveDocument.GetSheetObject( objID )
+  w = obj.GetColumnCount
+  if obj.GetRowCount>1001 then
+    h=1000 
+  else h=obj.GetRowCount
+  end if
+  Set objExcel = CreateObject("Excel.Application")
+  objExcel.Workbooks.Add
+  objExcel.Worksheets(1).select()
+  objExcel.Visible = True
+  set CellMatrix = obj.GetCells2(0,0,w,h)
+  column = 1
+  for cc=0 to w-1
+   objExcel.Cells(1,column).Value = CellMatrix(0)(cc).Text
+   objExcel.Cells(1,column).EntireRow.Font.Bold = True
+   column = column +1
+  next
+  c = 1
+  r =2
+  for RowIter=1 to h-1 
+    for ColIter=0 to w-1 
+      objExcel.Cells(r,c).Value = CellMatrix(RowIter)(ColIter).Text
+      c = c +1
+    next
+   r = r+1
+   c = 1
+ next
+END FUNCTION
+
+SUB CallExample
+   ExcelExport( "CH01" )
+END SUB
+3) Export object to JPG
+
+FUNCTION ExportObjectToJpg( ObjID, fName)
+   ActiveDocument.GetSheetObject(ObjID).ExportBitmapToFile fName
+END FUNCTION
+
+SUB CallExample
+   ExportObjectToJpg "CH01", "C:\CH01Image.jpg" 
+END SUB
+4) Export object from a hidden sheet to JPG
+
+FUNCTION ExportObjectToJpg(SheetID, ObjID, fName)
+  set s=ActiveDocument.GetSheetById(SheetID)
+  set sp=s.GetProperties
+  sp.Show.Always = true
+  s.SetProperties sp
+  s.Activate
+  for i=0 to s.NoOfSheetObjects-1
+      if s.SheetObjects(i).GetObjectId = ObjID then 
+          ActiveDocument.GetApplication.WaitforIdle
+          s.SheetObjects(i).ExportBitmapToFile fName
+      end if    
+  next
+END FUNCTION
+        
+SUB setVariable(varName, varValue)
+ set v = ActiveDocument.Variables(varName)
+ v.SetContent varValue, true
+END SUB
+
+SUB CallExample
+  ' "vShow" is the variable which controls the visibility of the sheet: Sheet properties -> Show Sheet -> Conditional: =vShow
+  setVariable "vShow", 1 
+  set ss= ActiveDocument.GetSheet(0)
+  ExportObjectToJpg "Document\SH02", "Document\CH01", "D:\CH01Image.jpg" 
+  ActiveDocument.GetSheetById(ss.GetProperties.SheetId).Activate
+  setVariable "vShow", 0 ' replace 0 with your own condition to hide the sheet
+END SUB
+5) Save and exit QlikView
+
+SUB SaveAndQuit
+   ActiveDocument.Save
+   ActiveDocument.GetApplication.Quit
+END SUB
+6) Clone Dimension Group
+
+SUB DuplicateGroups 
+    SourceGroup = InputBox("Enter Source Group Name") 
+    CopiesNo = InputBox("How many copies?") 
+    SourceGroupProperties = ActiveDocument.GetGroup(SourceGroup).GetProperties 
+    FOR i = 1 TO CopiesNo 
+      SET DestinationGroup = ActiveDocument.CreateGroup(SourceGroupProperties.Name & "_" & i) 
+      SET DestinationGroupProperties = DestinationGroup.GetProperties 
+
+      IF SourceGroupProperties.IsCyclic THEN 
+        DestinationGroupProperties.IsCyclic = true 
+      ELSE
+        DestinationGroupProperties.IsCyclic = false
+      END IF
+      DestinationGroup.SetProperties DestinationGroupProperties
+
+      SET Fields = SourceGroupProperties.FieldDefs 
+      FOR c = 0 TO Fields.Count-1 
+        SET fld = Fields(c) 
+        DestinationGroup.AddField fld.name 
+      NEXT
+      Application.waitforidle 
+    NEXT 
+END SUB
+7) Open document with selection of current month
+
+SUB DocumentOpen
+  ActiveDocument.Sheets("Intro").Activate
+  ActiveDocument.ClearAll (true)
+  ActiveDocument.Fields("YearMonth").Select ActiveDocument.Evaluate("Date(MonthStart(Today(), 0),'MMM-YYYY')")
+END SUB
+8) Read and Write variables
+
+FUNCTION getVariable(varName)
+ set v = ActiveDocument.Variables(varName)
+ getVariable = v.GetContent.String
+END FUNCTION
+
+SUB setVariable(varName, varValue)
+ set v = ActiveDocument.Variables(varName)
+ v.SetContent varValue, true
+END SUB
+9) Open QlikView application, reload, press a button and close (put the code in a .vbs file)
+
+Set MyApp = CreateObject("QlikTech.QlikView")
+Set MyDoc = MyApp.OpenDoc ("C:\QlikViewApps\Demo.qvw","","")
+Set ActiveDocument = MyDoc
+ActiveDocument.Reload
+Set Button1 = ActiveDocument.GetSheetObject("BU01")
+Button1.Press
+MyDoc.GetApplication.Quit
+Set MyDoc = Nothing
+Set MyApp = Nothing
+10) Delete file
+
+FUNCTION DeleteFile(rFile)
+	set oFile = createObject("Scripting.FileSystemObject")
+
+	currentStatus = oFile.FileExists(rFile)
+
+	if currentStatus = true then
+		oFile.DeleteFile(rFile)
+	end if
+	set oFile = Nothing
+END FUNCTION
+
+SUB CallExample
+    DeleteFile ("C:\MyFile.PDF") 
+END SUB
+11) Get reports information
+
+function countReports
+	set ri = ActiveDocument.GetDocReportInfo
+	countReports = ri.Count
+end function
+
+function getReportInfo (i)
+	set ri = ActiveDocument.GetDocReportInfo
+    set r = ri.Item(i)
+    getReportInfo = r.Id & "," & r.Name & "," & r.PageCount & CHR(10)
+end function
+12) Send mail using Google Mail
+
+SUB SendMail
+	Dim objEmail
+
+	Const cdoSendUsingPort = 2 	' Send the message using SMTP
+	Const cdoBasicAuth = 1     	' Clear-text authentication
+	Const cdoTimeout = 60      	' Timeout for SMTP in seconds
+
+     mailServer = "smtp.gmail.com"
+     SMTPport = 465
+     mailusername = "MyAccount@gmail.com"
+     mailpassword = "MyPassword"
+
+     mailto = "destination@company.com" 
+     mailSubject = "Subject line" 
+     mailBody = "This is the email body" 
+
+	Set objEmail = CreateObject("CDO.Message")
+	Set objConf = objEmail.Configuration
+	Set objFlds = objConf.Fields
+
+	With objFlds
+    	.Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = cdoSendUsingPort
+    	.Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = mailServer
+	.Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = SMTPport
+	.Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
+    	.Item("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = cdoTimeout
+	.Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = cdoBasicAuth
+	.Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = mailusername
+	.Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = mailpassword
+    	.Update
+	End With
+
+	objEmail.To = mailto
+	objEmail.From = mailusername
+	objEmail.Subject = mailSubject
+	objEmail.TextBody = mailBody
+	objEmail.AddAttachment "C:\report.pdf"
+	objEmail.Send
+
+	Set objFlds = Nothing
+	Set objConf = Nothing
+	Set objEmail = Nothing
+END SUB
+13) Autozoom sheet to fit the window
+
+SUB AutoZoom
+
+     ActiveDocument.GetApplication.WaitForIdle
+     ActiveDocument.ActiveSheet.FitZoomToWindow
+
+END SUB
+14) Import and export all variables from an Excel file (by Barry)
+
+Sub ImportVariablesFromExcel
+
+' Imports all variable definitions from the Excel file specified in the variable 'v.Filename.Variables', 
+' The path to the Excel file needs to be in a relative format.
+'
+' Variable definitions need to be placed on a worksheet named 'Variables' and containing the following columns:
+'
+'	1: Variable, name of the variable.
+'
+'	2: Expression, expression or value of the variable. Prefix with ' when starting with =, otherwise Excel tries
+'	   to interpret the expression as an Excel formula.
+'
+'	3: Comment, comments for the variable.
+
+	Set doc = ActiveDocument
+	Set wbFilename = ActiveDocument.GetVariable("v.Filename.Variables")
+
+	If wbFilename is Nothing then
+
+		' The variable that stores the location of the variables Excel file does not exist
+		MsgBox "The required variable 'v.Filename.Variables' does not exists!", 16, "Error"
+
+	Else
+
+		If Instr(Lcase(wbFilename.GetRawContent), "xls") = 0 then
+
+			' The variable exists, but does not contain a valid Excel filename (based on looking for the 'xls' part)
+			MsgBox "No valid Excel filename specified in variable 'v.Filename.Variables'", 16, "Error"
+
+		Else
+
+			'Get the path of the current QVW       		
+       		QvwPath = Left(ActiveDocument.GetProperties.Filename, InStrRev(ActiveDocument.GetProperties.Filename, "\"))
+
+       		' Initialize Excel, open the file and get a reference to the Variables worksheet
+       		Set objExcel = CreateObject("Excel.Application")
+       		Set objWorkbook = objExcel.Workbooks.Open(QvwPath & wbFilename.GetRawContent)
+       		Set objSheet = objWorkbook.Sheets("Variables")
+
+       		' Ignore the header by starting on the second row
+       		i = 2
+
+       		' Create a new variable (or overwrite if it already exists) for each row in the worksheet
+       		Do while not IsEmpty(objSheet.Cells(i, 1))
+
+            	doc.CreateVariable(objSheet.Cells(i, 1).Value)
+
+              	Set v = doc.Variables(objSheet.Cells(i, 1).Value)
+
+              	v.SetContent objSheet.Cells(i, 2).Value, true
+              	v.SetComment objSheet.Cells(i, 3).Value
+
+              	i = i + 1
+
+       		Loop
+
+			' Close Excel, otherwise we'll be left with running instances in the background
+			objWorkbook.Saved = True
+			objWorkbook.Close
+			objExcel.Quit
+
+			Set objSheet = Nothing
+			Set objWorkbook = Nothing
+          	Set objExcel = Nothing
+
+		End If
+
+	End If
+
+End Sub  
+
+Sub ExportVariablesToExcel
+
+' Exports all variables, with the exception of QlikView specific variables, to a new
+' Excel workbook in a worksheet called 'Variables', this sheet contains 3 columns:
+'
+'	1: Variable, name of the variable.
+'
+'	2: Expression, expression or value of the variable. Prefix with ' when starting with =, otherwise Excel tries
+'	   to interpret the expression as an Excel formula.
+'
+'	3: Comment, comments for the variable.
+
+	Set doc = ActiveDocument
+
+	Set objExcel = CreateObject("Excel.Application")
+	Set objWorkbook = objExcel.Workbooks.Add
+    Set objSheet = objWorkbook.Sheets.Add
+
+    objSheet.Name = "Variables"   
+	objSheet.Cells(1, 1).Value = "Variable"
+ 	objSheet.Cells(1, 2).Value = "Expression"
+ 	objSheet.Cells(1, 3).Value = "Comment"
+
+	Set vars = ActiveDocument.GetVariableDescriptions
+
+	r = 2
+
+	For i = 0 to vars.Count - 1
+
+		Set v = vars.Item(i)
+
+            ' Exclude all QlikView specific variables
+			If not v.IsConfig and not v.IsReserved then
+
+				objSheet.Cells(r, 1).Value = v.Name
+
+                ' Excel treats expressions starting with = as an Excel formula, 
+                ' so prefix with ' to indicate that it should be treated as text
+                if Left(v.RawValue, 1) = "=" then			
+					objSheet.Cells(r, 2).Value = "'" & v.RawValue
+				else
+					objSheet.Cells(r, 2).Value = v.RawValue
+				end if
+
+				objSheet.Cells(r, 3).Value = ActiveDocument.Variables(v.Name).GetComment
+
+			r = r + 1
+			end if
+
+       next
+
+	' Show Excel so the exported variables can be inspected before saving
+	objExcel.Visible = True
+
+End Sub
+15) Add conditional expression to chart
+
+SUB AddConditionalExpressionToExistingChart
+
+set chart = ActiveDocument.GetSheetObject("CH01")
+    ExpNo = chart.AddExpression( "sum( Expression1 )")
+
+set cp = chart.GetProperties
+set ExpVis = cp.Expressions.Item(ExpNo).Item(0).Data.ExpressionVisual
+
+ExpVis.Label.v = "Sales"
+ExpVis.NumAdjust = 1      'center
+ExpVis.LabelAdjust = 1    'center
+
+set ExpCond= cp.Expressions.Item(ExpNo).Item(0).Data.EnableCondition
+
+ExpCond.Type = 2
+ExpCond.Expression = "sum( Expression1 ) > 0"
+
+chart.SetProperties cp
+
+END SUB
+16) Change layout property to all object in one step (AllowMoveSize = False)
+
+SUB BlockObjects
+
+for s = 0 to ActiveDocument.NoOfSheets - 1
+    set vSheet = ActiveDocument.GetSheet(s)
+	Objects = vSheet.GetSheetObjects
+	For i = lBound(Objects) To uBound(Objects)
+		set vObject = Objects(i)
+		set vObjectFrame = vObject.GetFrameDef
+		vObjectFrame.AllowMoveSize = false
+		vObject.SetFrameDef vObjectFrame
+	Next
+next
+
+END SUB
+17) Reset INPUT FIELD
+
+SUB ResetInputField
+       set fld = ActiveDocument.Fields("FieldName")
+       fld.ResetInputFieldValues 0
+END SUB
+18) Dynamic Update (insert values from inputboxes into a table)
+
+SUB InsertValues
+
+ cust = getVariable("vCustomer")
+ val = getVariable("vSales")
+
+ SET Result = ActiveDocument.DynamicUpdateCommand ("INSERT INTO * (Customer, Sales) VALUES ('" & cust & "', " & val & ");")
+	
+ if Result = false then
+    MsgBox Result.ErrorMessage
+ end if  
+
+END SUB
+
+SUB UpdateValues
+
+ cust = getVariable("vCustomer")
+ val = getVariable("vSales")
+
+ SET Result = ActiveDocument.DynamicUpdateCommand ("UPDATE * SET Sales = " & val & " WHERE Customer = '" & cust & "'")
+	
+ if Result = false then
+    MsgBox Result.ErrorMessage
+ end if  
+
+END SUB
+
+SUB DeleteValues
+
+ cust = getVariable("vCustomer")
+ val = getVariable("vSales")
+
+ SET Result = ActiveDocument.DynamicUpdateCommand ("DELETE FROM SALES_TABLE WHERE Customer = '" & cust & "' and Sales = " & val)
+	
+ if Result = false then
+    MsgBox Result.ErrorMessage
+ end if  
+
+END SUB

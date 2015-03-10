@@ -1,11 +1,11 @@
-Hope the below macro scripts helps beginners
-Source : QlikView Macros – Useful collection | Lucian Cotea
+Qlikview Macros for Beginners
  
 1) Run external program:
 
 FUNCTION RunExe(cmd) 
  CreateObject("WScript.Shell").Exec(cmd) 
 END FUNCTION  
+
 SUB CallExample RunExe("c:\Program Files\Internet Explorer\iexplore.exe") END SUB
 
 2) Export object to Excel
@@ -91,64 +91,66 @@ END SUB
 
 8) Open QlikView application, reload, press a button and close (put the code in a .vbs file)
 
-Set MyApp = CreateObject("QlikTech.QlikView") Set MyDoc = MyApp.OpenDoc ("C:\QlikViewApps\Demo.qvw","","") Set ActiveDocument = MyDoc ActiveDocument.Reload Set Button1 = ActiveDocument.GetSheetObject("BU01") Button1.Press MyDoc.GetApplication.Quit Set MyDoc = Nothing Set MyApp = Nothing
+Set MyApp = CreateObject("QlikTech.QlikView") 
+Set MyDoc = MyApp.OpenDoc ("C:\QlikViewApps\Demo.qvw","","") 
+Set ActiveDocument = MyDoc ActiveDocument.Reload 
+Set Button1 = ActiveDocument.GetSheetObject("BU01") Button1.Press MyDoc.GetApplication.Quit 
+Set MyDoc = Nothing 
+Set MyApp = Nothing
+
 9) Delete file
 
-FUNCTION DeleteFile(rFile) set oFile = createObject("Scripting.FileSystemObject")  currentStatus = oFile.FileExists(rFile)  if currentStatus = true then oFile.DeleteFile(rFile) end if set oFile = Nothing END FUNCTION  SUB CallExample DeleteFile ("C:\MyFile.PDF") END SUB
+FUNCTION DeleteFile(rFile) 
+  set oFile = createObject("Scripting.FileSystemObject")  
+  currentStatus = oFile.FileExists(rFile)  
+  if currentStatus = true then 
+    oFile.DeleteFile(rFile) 
+  end if 
+  set oFile = Nothing 
+END FUNCTION  
+SUB CallExample DeleteFile ("C:\MyFile.PDF") END SUB
+
 10) Get reports information
 
-function countReports set ri = ActiveDocument.GetDocReportInfo countReports = ri.Count end function  function getReportInfo 
+function countReports 
+  set ri = ActiveDocument.GetDocReportInfo 
+  countReports = ri.Count 
+end 
 
+function  function getReportInfo 
+  set ri = ActiveDocument.GetDocReportInfo 
+  set r = ri.Item(i) getReportInfo = r.Id & "," & r.Name & "," & r.PageCount & CHR(10) 
+end function
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
- set ri = ActiveDocument.GetDocReportInfo set r = ri.Item(i) getReportInfo = r.Id & "," & r.Name & "," & r.PageCount & CHR(10) end function
-11) Send mail using Google Mail
-
-SUB SendMail Dim objEmail  Const cdoSendUsingPort = 2      ' Send the message using SMTP Const cdoBasicAuth = 1          ' Clear-text authentication Const cdoTimeout = 60           ' Timeout for SMTP in seconds  mailServer = "smtp.gmail.com" SMTPport = 465 mailusername = "MyAccount@gmail.com" mailpassword = "MyPassword"  mailto = "destination@company.com" mailSubject = "Subject line" mailBody = "This is the email body"  Set objEmail = CreateObject("CDO.Message") Set objConf = objEmail.Configuration Set objFlds = objConf.Fields  With objFlds .Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = cdoSendUsingPort .Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = mailServer .Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = SMTPport .Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True .Item("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = cdoTimeout .Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = cdoBasicAuth .Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = mailusername .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = mailpassword .Update End With  objEmail.To = mailto objEmail.From = mailusername objEmail.Subject = mailSubject objEmail.TextBody = mailBody objEmail.AddAttachment "C:\report.pdf" objEmail.Send  Set objFlds = Nothing Set objConf = Nothing Set objEmail = Nothing END SUB
 12) Changing Font setting of an Object
  
 SUB Font()
-set obj = ActiveDocument.GetSheetObject("BU01")
-set fnt = obj.GetFrameDef.Font
-fnt.PointSize1000 = fnt.PointSize1000 + 1000
-fnt.FontName = "Calibri"
-fnt.Bold = true
-fnt.Italic = true
-fnt.Underline = true
-obj.SetFont fnt
+  set obj = ActiveDocument.GetSheetObject("BU01")
+  set fnt = obj.GetFrameDef.Font
+  fnt.PointSize1000 = fnt.PointSize1000 + 1000
+  fnt.FontName = "Calibri"
+  fnt.Bold = true
+  fnt.Italic = true
+  fnt.Underline = true
+  obj.SetFont fnt
 END SUB
+
 13. To Show and Hide Tab row.
  
 Sub ShowTab  
-rem Hides tabrow in document properties  
-set docprop = ActiveDocument.GetProperties  
-docprop.ShowTabRow=true  
-ActiveDocument.SetProperties docprop  
+  rem Hides tabrow in document properties  
+  set docprop = ActiveDocument.GetProperties  
+  docprop.ShowTabRow=true  
+  ActiveDocument.SetProperties docprop  
 End Sub  
   
 Sub HideTab  
-rem Hides tabrow in document properties  
-set docprop = ActiveDocument.GetProperties  
-docprop.ShowTabRow=false  
-ActiveDocument.SetProperties docprop  
+  rem Hides tabrow in document properties  
+  set docprop = ActiveDocument.GetProperties  
+  docprop.ShowTabRow=false  
+  ActiveDocument.SetProperties docprop  
 End Sub  
+
 14. Always One Selected Enable / Disable setting through Macro
 Sub AlwaysOneSelected  
   set obj = ActiveDocument.GetSheetObject("LB02")  
@@ -159,9 +161,9 @@ Sub AlwaysOneSelected
 End Sub  
   
 Sub RemoveAlwaysOneSelected  
-    set obj = ActiveDocument.GetSheetObject("LB02")  
-    set boxfield=obj.GetField  
-    set fprop = boxfield.GetProperties  
+  set obj = ActiveDocument.GetSheetObject("LB02")  
+  set boxfield=obj.GetField  
+  set fprop = boxfield.GetProperties  
   fprop.OneAndOnlyOne = False  
   boxfield.SetProperties fprop  
   ActiveDocument.ClearAll True  
@@ -169,13 +171,13 @@ End Sub
 15. Reading Rows and Columns in a table object
  
 Sub ReadStraightTable
-Set Table = ActiveDocument.GetSheetObject( "CH01" )
-For RowIter = 0 to table.GetRowCount-1
-   For ColIter = 0 to table.GetColumnCount-1
-        set cell = table.GetCell(RowIter,ColIter)
-        Msgbox(cell.Text)
-    Next
-Next
+  Set Table = ActiveDocument.GetSheetObject( "CH01" )
+  For RowIter = 0 to table.GetRowCount-1
+     For ColIter = 0 to table.GetColumnCount-1
+          set cell = table.GetCell(RowIter,ColIter)
+          Msgbox(cell.Text)
+      Next
+  Next
 End Sub
  
 16. Get number of Rows in a Straight or Pivot tables
