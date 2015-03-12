@@ -1,1 +1,31 @@
 
+Project: 
+Load * Inline [
+	ProjectID, ProjectName, StartDate, EndDate 
+	1, First Project, 2013-01-01, 2013-06-30
+	2, Second Project, 2013-02-01, 2013-07-31
+	3, Third Project, 2013-03-01, 2013-05-31
+	4, Fourth Project, 2013-04-01, 2013-08-31
+	5, Fifth Project, 2013-05-01, 2013-10-31
+];
+
+Let vMinDate=Floor(MakeDate(2013));
+Let vMaxDate=Floor(MakeDate(2013,10,31));
+Let vNumDays=vMaxDate-vMinDate+1;
+
+Calendar: 
+Load  
+ TempDate as DateID,  
+ Date(TempDate) As Date,
+ Year(TempDate) As Year,
+ Month(TempDate) As Month,
+ Date(MonthStart(TempDate), 'YYYY-MM') As YearMonth; 
+	Load  
+		RecNo()-1+$(vMinDate) As TempDate AutoGenerate($(vNumDays));
+		
+		
+
+LinkTable: 
+	IntervalMatch(DateID) 
+	Load  StartDate, EndDate 
+	Resident Project;
