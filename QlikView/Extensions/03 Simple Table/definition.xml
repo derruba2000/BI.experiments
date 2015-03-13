@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<ExtensionObject Label="Basic Table"> 
+    <Dimension Initial="" /> 
+    <Measurement Initial="" /> 
+    <Initiate Name="Caption.Text" value="Basic Table" /> 
+</ExtensionObject>
