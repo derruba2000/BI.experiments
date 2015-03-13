@@ -1,4 +1,3 @@
-
 Targeted_Table:
 LOAD CustomerID,
  InvoiceID,
@@ -7,13 +6,11 @@ LOAD CustomerID,
 FROM
 Resident Table1
 
-
 INNER JOIN (Targeted_Table)
 LOAD InvoiceID,
  DateDelivery
 FROM
 Resident table2
-
 
 Targeted_Table2:
 INNER KEEP (Targeted_Table)
@@ -21,9 +18,6 @@ LOAD InvoiceID,
  DateDelivery
 FROM
 Resident foo
-
-
-
 
 Testtable3:
 load * Inline [
@@ -37,7 +31,6 @@ Z, 01-01-2014, 200, 100
 W, 01-01-2014, 100,300
 ];
 
-
-
-
 CONCATENATE (Table1) LOAD * RESIDENT Table2;
+
+

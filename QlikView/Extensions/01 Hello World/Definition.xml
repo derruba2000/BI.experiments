@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ExtensionObject  Path="Hello" 
+                  Label="Hello World" 
+                  Description="Hello World Extension" 
+                  Type="object">
+</ExtensionObject>
