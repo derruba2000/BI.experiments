@@ -1,0 +1,89 @@
+      String v_year = Dts.Variables["v_year"].Value.ToString();
+                String v_month = Dts.Variables["v_month"].Value.ToString();
+                String v_startdate = Dts.Variables["v_startdate"].Value.ToString();
+                String v_enddate = Dts.Variables["v_enddate"].Value.ToString();
+                String id_proc = Dts.Variables["id_proc"].Value.ToString();
+
+            try
+            {
+                
+                ReportExecutionService _rsExec = new ReportExecutionService();
+                _rsExec.Credentials = System.Net.CredentialCache.DefaultCredentials;
+                _rsExec.Url = "http://localhost/ReportServer/reportexecution2005.asmx";
+
+     
+                if (v_month.Length < 2) v_month = "0" + v_month;
+
+                String format = "EXCEL";
+                String filename = @"D:\TMP\report.xls";
+                String reportName = @"/Reportsr";
+                Byte[] results;
+
+                ParameterValue[] p = new ParameterValue[2];
+
+                _rsExec.LoadReport(reportName, null);
+                
+                p[0] = new ParameterValue();
+                p[0].Label = "startdate";
+                p[0].Name = "startdate";
+                p[0].Value = v_startdate;
+                
+                p[1] = new ParameterValue();
+                p[1].Label = "enddate";
+                p[1].Name = "enddate";
+                p[1].Value = v_enddate;
+
+                _rsExec.SetExecutionParameters(p, "en-us");
+
+                string encoding = String.Empty;
+                string mimeType = String.Empty;
+                string extension = String.Empty;
+                string deviceinfo = null;
+                Warning[] warnings = null;
+                string[] streamIDs = null;
+
+                Dts.Variables["v_reportFile"].Value = filename;
+
+                results = _rsExec.Render(format, deviceinfo, out extension, out mimeType, out encoding, out warnings, out streamIDs);
+
+                using (FileStream stream = File.OpenWrite(filename))
+                {
+                    stream.Write(results, 0, results.Length);
+                }
+            }
+            catch (Exception e)
+            {
+                 
+                SqlConnection myADONETConnection = new SqlConnection();
+                myADONETConnection = (SqlConnection)(Dts.Connections["Gnosis ADO-NET"].AcquireConnection(Dts.Transaction) as SqlConnection);
+
+                using (SqlCommand cmd = new SqlCommand("[db].Processlog", myADONETConnection))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@id_proc", SqlDbType.Int).Value = id_proc;
+                    cmd.Parameters.Add("@msg_description", SqlDbType.VarChar).Value = " Error:Extracting  Report! " + e.Message;
+                    cmd.Parameters.Add("@substep", SqlDbType.VarChar).Value = 0;
+
+                    // myADONETConnection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+			Dts.TaskResult = (int)ScriptResults.Success;
+		}
+
+        #region ScriptResults declaration
+        /// <summary>
+        /// This enum provides a convenient shorthand within the scope of this class for setting the
+        /// result of the script.
+        /// 
+        /// This code was generated automatically.
+        /// </summary>
+        enum ScriptResults
+        {
+            Success = Microsoft.SqlServer.Dts.Runtime.DTSExecResult.Success,
+            Failure = Microsoft.SqlServer.Dts.Runtime.DTSExecResult.Failure
+        };
+        #endregion
+
+	}
