@@ -1,0 +1,31 @@
+SET vFolder='D:\SharedFolders\Tmp';
+
+
+Sub loadfiles(Files)
+          For Each file in FileList('$(Files)' & '\*.qvd');
+          	  tmpFileName = SubStringCount('$(file)','\');
+          	  LET tmpFileName=$(tmpFileName) + 1;
+          	  LET tmpFileName= SubField('$(file)','\',$(tmpFileName));
+          	  LET tableName= replace('$(tmpFileName)',' ','');
+          	  LET tableName= Mid('$(tableName)',1,Len('$(tableName)')-4);
+          	  LET tableName = '$(tableName)Table';
+          	  
+          	  Execute D:\SharedFolders\Tmp\testPapertrail.exe D:\SharedFolders\Tmp\Config.xml debug "Loading File $(tmpFileName) to table $(tableName)";
+				
+			  $(tableName):
+			  	LOAD *
+			  	FROM $(vFolder)\$(tmpFileName) (qvd);
+
+          NEXT file;
+          For Each subdir in DirList('$(Files)' & '\*');
+           CALL subFunction('$(subdir)')
+          NEXT subdir;
+End Sub
+ 
+ 
+SUB subFunction(Subdir)
+          For Each sub in DirList('$(Subdir)')
+           CALL loadfiles('$(sub)')
+          NEXT sub;
+End Sub
+Call loadfiles('$(vFolder)')
