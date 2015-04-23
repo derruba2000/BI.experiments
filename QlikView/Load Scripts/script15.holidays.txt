@@ -1,0 +1,32 @@
+
+holidays:
+LOAD * INLINE [
+    days
+    2015-04-01
+    2015-04-25
+    2015-04-26
+    2015-04-27
+    2015-04-28
+    2015-04-29
+    2015-04-30
+    2015-05-03
+    2015-05-04
+    2015-05-05
+    2015-05-06
+    2015-05-07
+    2015-05-08
+];
+
+LET totalHolidays = NoOfRows('holidays');
+SET holidaysStr= '0001-01-01', '0001-01-02';
+for i=1 to $(totalHolidays) // loop through every row
+          let text = FieldValue('days',$(i)); 
+		  SET holidaysStr=$(holidaysStr),'$(text)';
+next
+
+testTable:
+Load
+	Rowno() as num_row,
+	date#('12/04/2015','dd/mm/yyyy') as day1, date#('12/05/2015','dd/mm/yyyy') as day2,
+	NetWorkDays('12/04/2015', '12/05/2015', $(holidaysStr)) as TAT
+	Autogenerate 1;
